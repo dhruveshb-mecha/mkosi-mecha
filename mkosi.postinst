@@ -1,0 +1,21 @@
+# #!/bin/bash
+# set -e
+
+# for script in mkosi.postinst.d/*.sh; do
+#     echo "Running $script..."
+#     bash "$script"
+# done
+
+
+#!/bin/sh
+set -e
+
+for script in mkosi.postinst.d/*.sh; do
+    case "$script" in
+        *.chroot.sh) continue ;;  # skip chroot scripts
+    esac
+    echo "Running $script..."
+    sh "$script"
+done
+
+# Chroot scripts run automatically by mkosi (no need to call them)

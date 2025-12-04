@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
-echo "Installing Nano..."
-apt-get update || true
-apt-get install -y nano
+echo "Installing Nano on Fedora..."
+dnf update -y
+dnf install -y nano

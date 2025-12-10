@@ -1,20 +1,27 @@
-#!/bin/bash
-set -e
+# #!/bin/bash
+# set -e
 
-# Make sure CA certificates are installed
-apt-get update || true
-apt-get install -y ca-certificates gnupg
+# # Make sure required packages are installed
+# dnf install -y ca-certificates gnupg2 || dnf install -y gnupg || true
 
-# Ensure directories exist
-mkdir -p /etc/apt/trusted.gpg.d
-mkdir -p /etc/apt/sources.list.d
+# # Create required directories
+# mkdir -p /etc/pki/rpm-gpg
+# mkdir -p /etc/yum.repos.d
 
-# Add Nushell GPG key
-curl -fsSL https://apt.fury.io/nushell/gpg.key | gpg --dearmor > /etc/apt/trusted.gpg.d/fury-nushell.gpg
+# # Add Nushell GPG key
+# curl -fsSL https://yum.fury.io/nushell/gpg.key \
+#     -o /etc/pki/rpm-gpg/RPM-GPG-KEY-gemfury-nushell
 
-# Add Nushell repository
-echo "deb https://apt.fury.io/nushell/ /" > /etc/apt/sources.list.d/fury.list
+# # Add Nushell repository
+# cat << 'EOF' > /etc/yum.repos.d/fury-nushell.repo
+# [gemfury-nushell]
+# name=Gemfury Nushell Repo
+# baseurl=https://yum.fury.io/nushell/
+# enabled=1
+# gpgcheck=1
+# gpgkey=/etc/pki/rpm-gpg/RPM-GPG-KEY-gemfury-nushell
+# EOF
 
-# Update and install Nushell
-apt-get update
-apt-get install -y nushell
+# # Update and install Nushell
+# dnf makecache
+# dnf install -y nushell || dnf install -y nu

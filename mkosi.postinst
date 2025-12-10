@@ -19,3 +19,12 @@ for script in mkosi.postinst.d/*.sh; do
 done
 
 # Chroot scripts run automatically by mkosi (no need to call them)
+
+#!/bin/bash
+set -eux
+
+# enable the display manager
+systemctl enable gdm.service
+
+# switch to graphical target
+systemctl set-default graphical.target

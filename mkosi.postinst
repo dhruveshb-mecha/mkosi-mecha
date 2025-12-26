@@ -1,21 +1,9 @@
-# #!/bin/bash
-# set -e
+#!/bin/bash
+set -eux
 
-# for script in mkosi.postinst.d/*.sh; do
-#     echo "Running $script..."
-#     bash "$script"
-# done
+exit 0
+# enable the display manager
+# systemctl enable greetd
 
-
-#!/bin/sh
-set -e
-
-for script in mkosi.postinst.d/*.sh; do
-    case "$script" in
-        *.chroot.sh) continue ;;  # skip chroot scripts
-    esac
-    echo "Running $script..."
-    sh "$script"
-done
-
-# Chroot scripts run automatically by mkosi (no need to call them)
+# switch to graphical target
+#systemctl set-default graphical.target

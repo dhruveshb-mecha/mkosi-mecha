@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "0 2 * * *"   # daily at 02:00 UTC   # daily at 02:00 UTC  
 
 jobs:
   build:
@@ -44,9 +46,15 @@ jobs:
         run: |
           mkosi -f build
 
+      - name: Rename image with timestamp
+        run: |
+          TS=$(date -u +"%Y%m%d-%H%M")
+          mv /opt/mecha/fedora43.raw /opt/mecha/mechanix-os-${TS}.raw
+          echo "IMAGE_NAME=mechanix-os-${TS}.raw" >> $GITHUB_ENV
+
       - name: Upload mkosi image
         uses: actions/upload-artifact@v4
         with:
-          name: fedora43-raw
+          name: ${{ env.IMAGE_NAME }}
           path: |
-            /opt/mecha/fedora43.raw   
+            /opt/mecha/${{ env.IMAGE_NAME }}

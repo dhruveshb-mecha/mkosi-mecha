@@ -1,0 +1,45 @@
+name: mkosi Fedora 43 build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    container:
+      image: fedora:43
+      options: --privileged
+
+    steps:
+      - name: Install prerequisites
+        run: |
+          dnf -y update
+          dnf -y install \
+            mkosi \
+            systemd \
+            systemd-repart \
+            git \
+            wget \
+            util-linux \
+            e2fsprogs \
+            dosfstools \
+            squashfs-tools \
+            xz \
+            tar
+
+      - name: Clone mkosi-mecha
+        run: |
+          git clone https://github.com/dhruveshb-mecha/mkosi-mecha /opt/mecha
+
+      - name: Download kernel RPM
+        working-directory: /opt/mecha
+        run: |
+          wget https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/kernel-6.12.20%2Bmecha%2B-4.aarch64.rpm
+
+      - name: Build image with mkosi
+        working-directory: /opt/mecha
+        run: |
+          mkosi -f build

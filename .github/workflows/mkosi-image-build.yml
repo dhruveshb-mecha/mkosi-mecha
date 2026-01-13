@@ -36,10 +36,11 @@ jobs:
         run: |
           git clone https://github.com/dhruveshb-mecha/mkosi-mecha /opt/mecha
 
-      - name: Download kernel RPM
+      - name: Download custom packages
         working-directory: /opt/mecha
         run: |
           wget https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/kernel-6.12.20%2Bmecha%2B-4.aarch64.rpm
+          wget https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/firmware-nxp-wifi-nxpiw612.fc43.aarch64.rpm
 
       - name: Build image with mkosi
         working-directory: /opt/mecha

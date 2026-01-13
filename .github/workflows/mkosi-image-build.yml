@@ -43,3 +43,10 @@ jobs:
         working-directory: /opt/mecha
         run: |
           mkosi -f build
+
+      - name: Upload mkosi image
+        uses: actions/upload-artifact@v4
+        with:
+          name: fedora43-raw
+          path: |
+            /opt/mecha/fedora43.raw   

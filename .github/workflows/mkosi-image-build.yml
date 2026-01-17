@@ -5,7 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * *"   # daily at 02:00 UTC   # daily at 02:00 UTC  
+    - cron: "0 2 * * *"
 
 jobs:
   build:
@@ -15,9 +15,21 @@ jobs:
       image: fedora:43
       options: --privileged
 
+    env:
+      MKOSI_OUTPUT: fedora43.raw
+      IMAGE_PREFIX: mechanix-os
+
     steps:
-      - name: Install prerequisites
+      # 1. Checkout repo (instead of git clone)
+      - name: Checkout mkosi-mecha
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. Install prerequisites
+      - name: Install build dependencies
         run: |
+          set -euxo pipefail
           dnf -y update
           dnf -y install \
             mkosi \
@@ -32,30 +44,45 @@ jobs:
             xz \
             tar
 
-      - name: Clone mkosi-mecha
-        run: |
-          git clone https://github.com/dhruveshb-mecha/mkosi-mecha /opt/mecha
+      # 3. Cache DNF packages
+      - name: Cache DNF
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/dnf
+          key: dnf-${{ runner.os }}-${{ hashFiles('mkosi.conf') }}
+          restore-keys: |
+            dnf-${{ runner.os }}-
 
-      - name: Download custom packages
-        working-directory: /opt/mecha
+      # 4. Download custom RPMs
+      - name: Fetch custom kernel & firmware
         run: |
-          wget https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/kernel-6.12.20%2Bmecha%2B-2.aarch64.rpm
-          wget https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/firmware-nxp-wifi-nxpiw612.fc43.aarch64.rpm
+          set -euxo pipefail
+          mkdir -p rpms
+          wget -O rpms/kernel.rpm \
+            https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/kernel-6.12.20%2Bmecha%2B-2.aarch64.rpm
+          wget -O rpms/firmware.rpm \
+            https://pub-a2f44c787cec4290833312e57fd59522.r2.dev/firmware-nxp-wifi-nxpiw612.fc43.aarch64.rpm
 
+      # 5. Build image
       - name: Build image with mkosi
-        working-directory: /opt/mecha
         run: |
+          set -euxo pipefail
           mkosi -f build
+          test -f "${MKOSI_OUTPUT}"
 
-      - name: Rename image with timestamp
+      # 6. Rename image with metadata
+      - name: Rename image
         run: |
+          set -euxo pipefail
           TS=$(date -u +"%Y%m%d-%H%M")
-          mv /opt/mecha/fedora43.raw /opt/mecha/mechanix-os-${TS}.raw
-          echo "IMAGE_NAME=mechanix-os-${TS}.raw" >> $GITHUB_ENV
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          FINAL_NAME="${IMAGE_PREFIX}-${TS}-${SHORT_SHA}.raw"
+          mv "${MKOSI_OUTPUT}" "${FINAL_NAME}"
+          echo "IMAGE_NAME=${FINAL_NAME}" >> $GITHUB_ENV
 
+      # 7. Upload artifact
       - name: Upload mkosi image
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.IMAGE_NAME }}
-          path: |
-            /opt/mecha/${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_NAME }}

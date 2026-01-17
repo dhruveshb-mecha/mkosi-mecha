@@ -70,14 +70,20 @@ jobs:
           test -f "${MKOSI_OUTPUT}"
 
       # 6. Rename image with timestamp and upload
-      - name: Rename image with timestamp
+      - name: Move image with timestamp
         run: |
+          set -euxo pipefail
+
           TS=$(date -u +"%Y%m%d-%H%M")
-          mv /opt/mecha/fedora43.raw /opt/mecha/mechanix-os-${TS}.raw
-          echo "IMAGE_NAME=mechanix-os-${TS}.raw" >> $GITHUB_ENV
+          FINAL_NAME="mechanix-os-${TS}.raw"
+
+          mkdir -p /opt/mecha
+          mv fedora43.raw /opt/mecha/${FINAL_NAME}
+
+          echo "IMAGE_NAME=${FINAL_NAME}" >> $GITHUB_ENV
+
       - name: Upload mkosi image
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.IMAGE_NAME }}
-          path: |
-            /opt/mecha/${{ env.IMAGE_NAME }}
+          path: /opt/mecha/${{ env.IMAGE_NAME }}
